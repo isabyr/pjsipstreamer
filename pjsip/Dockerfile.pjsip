@@ -1,0 +1,27 @@
+FROM ubuntu:18.04
+
+WORKDIR /code
+
+RUN apt update && apt install -y curl build-essential python3-dev python3-pip swig
+RUN ln -sfn /usr/bin/python3 /usr/bin/python
+RUN curl -SL https://github.com/pjsip/pjproject/archive/2.10.tar.gz | tar xvz
+
+WORKDIR /code/pjproject-2.10
+
+COPY pjsip_modified/pjsip/include/pjsua2/media.hpp pjsip/include/pjsua2/
+COPY pjsip_modified/pjsip/src/pjsua2/media.cpp pjsip/src/pjsua2/
+COPY pjsip_modified/pjsip-apps/src/swig/python/Makefile pjsip-apps/src/swig/python/
+COPY pjsip_modified/pjsip-apps/src/swig/pjsua2.i pjsip-apps/src/swig/
+
+RUN ./configure --enable-shared && make dep && make clean && make -j 4 && make install
+
+WORKDIR /code/pjproject-2.10/pjsip-apps/src/swig/python
+RUN make && make install
+RUN ldconfig
+
+
+RUN pip3 install --upgrade pip
+RUN pip3 install requests websocket-client
+ENV PYTHONIOENCODING=utf-8
+
+WORKDIR /code/

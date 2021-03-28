@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+  asterisk:
+    image: andrius/asterisk:16-current
+    volumes:
+      - ./asterisk_files/logs:/var/log/asterisk
+      - ./asterisk_files/config/extensions.conf:/etc/asterisk/extensions.conf
+      - ./asterisk_files/config/sip.conf:/etc/asterisk/sip.conf
+      - ./asterisk_files/config/rtp.conf:/etc/asterisk/rtp.conf
+      - ./asterisk_files/sounds:/var/lib/asterisk/sounds
+      - ./asterisk_files/recordings:/var/spool/asterisk/monitor/recordings/
+    ports:
+      - 5060:5060/udp
+      - 5060:5060/tcp
+      - 18000-18100:18000-18100/udp
+    environment:
+      ASTERISK_GID: 1000
+      ASTERISK_UID: 1000
+      TZ: Asia/Almaty
+  pjsip:
+    build:
+      context: ./pjsip
+      dockerfile: Dockerfile.pjsip
+    command: tail -f /etc/hosts
+    volumes:
+      - ./pjsip/pjsuademo:/code
+
+# docker run -ti --rm \
+#   -e ASTERISK_UID=1000 \
+#   -e ASTERISK_GID=1000 \
+#   -e TZ=Asia/Almaty \
+#   -p 5060:5060/tcp \
+#   -p 5060:5060/udp \
+#   -p 18000-18100:18000-18100/udp \
+#   -v ${PWD}/logs:/var/log/asterisk \
+#   -v ${PWD}/config/extensions.conf:/etc/asterisk/extensions.conf \
+#   -v ${PWD}/config/sip.conf:/etc/asterisk/sip.conf \
+#   -v ${PWD}/config/rtp.conf:/etc/asterisk/rtp.conf \
+#   -v ${PWD}/sounds:/var/lib/asterisk/sounds \
+#   -v ${PWD}/recordings:/var/spool/asterisk/monitor/recordings/ \
+#   andrius/asterisk:16-current
